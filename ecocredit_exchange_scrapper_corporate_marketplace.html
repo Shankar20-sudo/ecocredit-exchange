@@ -1,0 +1,1893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EcoCredit Exchange - Scrapper & Corporate Marketplace</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .chat-bubble-ai { background-color: #f1f5f9; color: #1e293b; border-radius: 1rem 1rem 1rem 0.2rem; }
+    .chat-bubble-user { background-color: #059669; color: #ffffff; border-radius: 1rem 1rem 0.2rem 1rem; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- ================= AUTH & ROLE SELECTION SCREEN (SHOWN WHEN LOGGED OUT) ================= -->
+  <div id="authScreen" class="min-h-screen bg-slate-900 text-white flex flex-col justify-center items-center p-4">
+    <!-- Brand Title -->
+    <div class="text-center mb-8 max-w-lg">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-600/20 border border-emerald-500/40 text-3xl mb-3">
+        ♻️
+      </div>
+      <h1 class="text-3xl font-extrabold tracking-tight">EcoCredit Exchange</h1>
+      <p class="text-sm text-slate-400 mt-2">
+        A unified platform connecting waste recyclers with corporations for verified Extended Producer Responsibility (EPR) e-credits.
+      </p>
+    </div>
+
+    <!-- Step 1: Role Chooser Cards -->
+    <div id="roleChooserStep" class="max-w-2xl w-full grid grid-cols-1 md:grid-cols-2 gap-5">
+      <!-- Seller Option -->
+      <div class="bg-slate-800 border-2 border-slate-700 hover:border-emerald-500 rounded-2xl p-6 transition-all duration-200 cursor-pointer hover:shadow-xl hover:shadow-emerald-900/20 flex flex-col justify-between" id="chooseSellerCard">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-3xl">📦</span>
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 font-semibold px-2.5 py-1 rounded-full border border-emerald-500/30">Seller / Recycler</span>
+          </div>
+          <h2 class="text-lg font-bold text-white mb-1">I am a Scrapper / Seller</h2>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Recycler, scrap dealer, or processing facility looking to monetize collected e-waste, lithium batteries, and scrap by selling verified e-credits.
+          </p>
+        </div>
+        <button id="btnSelectSeller" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md">
+          <span>Continue as Seller</span> &rarr;
+        </button>
+      </div>
+
+      <!-- Buyer Option -->
+      <div class="bg-slate-800 border-2 border-slate-700 hover:border-blue-500 rounded-2xl p-6 transition-all duration-200 cursor-pointer hover:shadow-xl hover:shadow-blue-900/20 flex flex-col justify-between" id="chooseBuyerCard">
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-3xl">🏢</span>
+            <span class="text-xs bg-blue-500/20 text-blue-300 font-semibold px-2.5 py-1 rounded-full border border-blue-500/30">Buyer / Enterprise</span>
+          </div>
+          <h2 class="text-lg font-bold text-white mb-1">I am a Corporate Buyer</h2>
+          <p class="text-xs text-slate-400 leading-relaxed mb-4">
+            Manufacturing company, brand owner, or enterprise purchasing certified e-credits to fulfill statutory EPR mandates and ESG goals.
+          </p>
+        </div>
+        <button id="btnSelectBuyer" class="w-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 shadow-md">
+          <span>Continue as Corporate Buyer</span> &rarr;
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Seller Login Form (Hidden by default) -->
+    <div id="sellerLoginForm" class="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <h3 class="text-base font-bold text-emerald-400 flex items-center gap-2">
+          <span>📦</span> Scrapper / Seller Sign In
+        </h3>
+        <button id="btnBackFromSeller" class="text-xs text-slate-400 hover:text-white">&larr; Back</button>
+      </div>
+      
+      <form id="formSellerAuth" class="space-y-4 text-xs">
+        <div>
+          <label for="inputSellerName" class="block font-semibold text-slate-300 uppercase mb-1">Collector / Facility Name</label>
+          <input type="text" id="inputSellerName" required placeholder="e.g., Vidarbha EcoRecyclers" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500 text-xs">
+        </div>
+        <div>
+          <label for="inputSellerHub" class="block font-semibold text-slate-300 uppercase mb-1">Primary Operating Hub</label>
+          <select id="inputSellerHub" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500 text-xs">
+            <option value="Nagpur Central Facility">Nagpur Central Facility</option>
+            <option value="Pune Recycling Hub">Pune Recycling Hub</option>
+            <option value="Mumbai Coastal Depot">Mumbai Coastal Depot</option>
+            <option value="Delhi NCR Unit">Delhi NCR Unit</option>
+          </select>
+        </div>
+        <div>
+          <label for="inputSellerFacilityId" class="block font-semibold text-slate-300 uppercase mb-1">Facility Reg. ID / License</label>
+          <input type="text" id="inputSellerFacilityId" placeholder="e.g., EPR-MH-REC-9412" value="EPR-MH-REC-9412" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-emerald-500 text-xs">
+        </div>
+
+        <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-xl transition shadow text-xs">
+          Enter Seller Dashboard &rarr;
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-t border-slate-700 flex justify-between items-center text-[11px] text-slate-400">
+        <span>Quick demo setup:</span>
+        <button id="btnDemoSeller" class="text-emerald-400 hover:underline font-semibold">Pre-fill Demo Seller</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Buyer Login Form (Hidden by default) -->
+    <div id="buyerLoginForm" class="max-w-md w-full bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-2xl hidden">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+        <h3 class="text-base font-bold text-blue-400 flex items-center gap-2">
+          <span>🏢</span> Corporate Buyer Sign In
+        </h3>
+        <button id="btnBackFromBuyer" class="text-xs text-slate-400 hover:text-white">&larr; Back</button>
+      </div>
+
+      <form id="formBuyerAuth" class="space-y-4 text-xs">
+        <div>
+          <label for="inputBuyerName" class="block font-semibold text-slate-300 uppercase mb-1">Company / Corporate Entity Name</label>
+          <input type="text" id="inputBuyerName" required placeholder="e.g., Tata Electronics Corp" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-xs">
+        </div>
+        <div>
+          <label for="inputBuyerTarget" class="block font-semibold text-slate-300 uppercase mb-1">Target Compliance Goal</label>
+          <select id="inputBuyerTarget" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-xs">
+            <option value="Mandatory Annual EPR Quota (Rule 2026)">Mandatory Annual EPR Quota</option>
+            <option value="Voluntary ESG Scope 3 Target">Voluntary ESG Scope 3 Target</option>
+            <option value="Zero Waste to Landfill Compliance">Zero Waste to Landfill Compliance</option>
+          </select>
+        </div>
+        <div>
+          <label for="inputBuyerCIN" class="block font-semibold text-slate-300 uppercase mb-1">Corporate CIN / Reg ID</label>
+          <input type="text" id="inputBuyerCIN" placeholder="e.g., L28920MH2026PLC019284" value="L28920MH2026PLC019284" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-blue-500 text-xs">
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-xl transition shadow text-xs">
+          Enter Buyer Marketplace &rarr;
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-t border-slate-700 flex justify-between items-center text-[11px] text-slate-400">
+        <span>Quick demo setup:</span>
+        <button id="btnDemoBuyer" class="text-blue-400 hover:underline font-semibold">Pre-fill Demo Buyer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APPLICATION (SHOWN WHEN LOGGED IN) ================= -->
+  <div id="appContainer" class="hidden min-h-screen flex flex-col">
+    <!-- Top Navigation Bar -->
+    <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl">♻️</span>
+          <div>
+            <h1 class="text-xl font-bold leading-tight">EcoCredit Exchange</h1>
+            <p class="text-xs text-emerald-200">Integrated Scrapper Marketplace & EPR Services</p>
+          </div>
+        </div>
+
+        <!-- Role Badge, Market Stats & Switch User Button -->
+        <div class="flex items-center space-x-3 text-xs">
+          <div class="hidden sm:flex bg-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-600 items-center gap-2">
+            <span class="text-emerald-300 text-xs font-medium">Market:</span>
+            <span id="statsSummary" class="font-bold text-white text-xs">0 Listed | 0 Purchased</span>
+          </div>
+          <div id="userProfileBadge" class="bg-emerald-800 px-3 py-1.5 rounded-lg border border-emerald-600 flex items-center gap-2">
+            <!-- Dynamically populated user profile -->
+          </div>
+          <button id="btnLogout" class="bg-emerald-900 hover:bg-emerald-950 text-emerald-200 hover:text-white px-3 py-1.5 rounded-lg border border-emerald-700 transition font-medium flex items-center gap-1">
+            <span>🔄</span> Switch Role / Log Out
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Navigation Tabs -->
+      <div class="bg-emerald-800/90 border-t border-emerald-600/50">
+        <div class="max-w-6xl mx-auto px-4 flex space-x-6 overflow-x-auto text-sm">
+          <button id="navMarketplace" class="py-2.5 px-1 border-b-2 border-white text-white font-semibold flex items-center gap-2 transition duration-150">
+            <span id="tabMarketplaceIcon">🏪</span> <span id="tabMarketplaceLabel">Credit Marketplace</span>
+          </button>
+          <button id="navLogistics" class="py-2.5 px-1 border-b-2 border-transparent text-emerald-200 hover:text-white font-medium flex items-center gap-2 transition duration-150">
+            <span>🚚</span> <span id="tabLogisticsLabel">Scrap Pickup Logistics</span>
+          </button>
+          <button id="navVerification" class="py-2.5 px-1 border-b-2 border-transparent text-emerald-200 hover:text-white font-medium flex items-center gap-2 transition duration-150">
+            <span>🔬</span> <span id="tabVerificationLabel">Lab Audit & Verification</span>
+          </button>
+          <button id="navCertificates" class="py-2.5 px-1 border-b-2 border-transparent text-emerald-200 hover:text-white font-medium flex items-center gap-2 transition duration-150">
+            <span>📜</span> <span id="tabCertificatesLabel">EPR Certificates</span>
+          </button>
+          <button id="navHelp" class="py-2.5 px-1 border-b-2 border-transparent text-emerald-200 hover:text-white font-medium flex items-center gap-2 transition duration-150">
+            <span>🤝</span> <span id="tabHelpLabel">Help & AI Support</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-8 flex-grow w-full">
+
+      <!-- TAB 1: PRIMARY VIEW (SELLER INVENTORY OR BUYER MARKETPLACE) -->
+      <div id="viewMarketplace" class="block space-y-6">
+        
+        <!-- Welcome Banner tailored to Role -->
+        <div id="roleHeroBanner" class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 id="roleHeroTitle" class="text-base font-bold text-slate-800 mb-1">Decentralized E-Waste & Recycled Credit Marketplace</h2>
+            <p id="roleHeroDesc" class="text-xs text-slate-600 leading-relaxed max-w-2xl">
+              Scrappers turn collected recyclable volumes into verifiable credits. Companies purchase credits to offset carbon footprints and achieve mandatory Extended Producer Responsibility (EPR) targets.
+            </p>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <button id="quickLogisticsBtn" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+              <span>🚚</span> Book Scrap Pickup
+            </button>
+            <button id="quickVerifyBtn" class="bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold px-3 py-2 rounded-lg border border-blue-200 flex items-center gap-1.5 transition">
+              <span>🔬</span> Order Lab Audit
+            </button>
+          </div>
+        </div>
+
+        <!-- Two-Column Grid: Scrapper Form (Left) & Feed (Right) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          
+          <!-- Scrapper Form Section (5 Cols) - Hidden in Buyer Mode -->
+          <section id="scrapperSectionWrapper" class="lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-fit">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <span>📦</span> Scrapper Portal: List Credits
+              </h2>
+              <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full">Seller Mode</span>
+            </div>
+
+            <form id="creditForm" class="space-y-4">
+              <div>
+                <label for="scrapperName" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                  Scrapper / Facility Name
+                </label>
+                <input 
+                  type="text" 
+                  id="scrapperName" 
+                  required 
+                  placeholder="e.g., Vidarbha EcoRecyclers" 
+                  class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                />
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="scrapType" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Scrap Material Type
+                  </label>
+                  <select 
+                    id="scrapType" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="E-Waste (Circuits & PCBs)">⚡ E-Waste (Circuits & PCBs)</option>
+                    <option value="Lithium-Ion EV Batteries">🔋 Lithium-Ion EV Batteries</option>
+                    <option value="Solar PV Modules">☀️ Solar PV Modules</option>
+                    <option value="Industrial Copper Scrap">⚙️ Industrial Copper Scrap</option>
+                    <option value="Recycled Ocean Plastics">🧴 Recycled Ocean Plastics</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="hubLocation" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Discharge Hub
+                  </label>
+                  <select 
+                    id="hubLocation" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  >
+                    <option value="Nagpur Central Facility">Nagpur Central Facility</option>
+                    <option value="Pune Recycling Hub">Pune Recycling Hub</option>
+                    <option value="Mumbai Coastal Depot">Mumbai Coastal Depot</option>
+                    <option value="Delhi NCR Processing Unit">Delhi NCR Unit</option>
+                    <option value="Bengaluru Tech Scrap Center">Bengaluru Center</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="creditAmount" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Volume (Credits / kg)
+                  </label>
+                  <input 
+                    type="number" 
+                    id="creditAmount" 
+                    required 
+                    min="1" 
+                    placeholder="e.g., 100" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label for="pricePerCredit" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
+                    Unit Price ($)
+                  </label>
+                  <input 
+                    type="number" 
+                    id="pricePerCredit" 
+                    required 
+                    min="0.1" 
+                    step="0.1" 
+                    placeholder="e.g., 15" 
+                    class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <!-- Publishing Timing Options: Immediate vs Scheduled -->
+              <div class="p-3.5 bg-emerald-50/60 border border-emerald-200/80 rounded-xl space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <span>⏱️</span> Listing Timing:
+                  </span>
+                  <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100 px-2 py-0.5 rounded-full">Automated Queue</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-emerald-400 transition has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/40">
+                    <input type="radio" name="listingScheduleMode" id="modeImmediate" value="immediate" checked class="text-emerald-600 focus:ring-emerald-500">
+                    <span class="font-medium text-slate-700">⚡ List Immediately</span>
+                  </label>
+                  <label class="flex items-center gap-2 p-2 bg-white rounded-lg border border-slate-200 cursor-pointer hover:border-emerald-400 transition has-[:checked]:border-emerald-600 has-[:checked]:bg-emerald-50/40">
+                    <input type="radio" name="listingScheduleMode" id="modeScheduled" value="scheduled" class="text-emerald-600 focus:ring-emerald-500">
+                    <span class="font-medium text-slate-700">⏰ Schedule Time</span>
+                  </label>
+                </div>
+
+                <!-- Scheduled Date & Time Picker Container -->
+                <div id="schedulePickerContainer" class="hidden pt-1 border-t border-emerald-200/60 space-y-1.5">
+                  <label for="scheduleDateTime" class="block text-[11px] font-semibold text-slate-600 uppercase">
+                    Select Publish Date & Time
+                  </label>
+                  <input 
+                    type="datetime-local" 
+                    id="scheduleDateTime" 
+                    class="w-full px-3 py-1.5 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-emerald-500 text-slate-700"
+                  />
+                  <p class="text-[10px] text-slate-500 leading-tight">
+                    The lot details will be safely queued and automatically launched on the marketplace when this time arrives.
+                  </p>
+                </div>
+              </div>
+
+              <!-- Additional Service Add-ons -->
+              <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+                <span class="text-xs font-bold text-slate-700 block">Verified Compliance Add-ons:</span>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="certifiedPurity" checked class="rounded text-emerald-600 focus:ring-emerald-500">
+                  <span class="text-xs text-slate-600">Attach Lab Purity Certification (+5% buyer trust)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" id="pickupAssistance" class="rounded text-emerald-600 focus:ring-emerald-500">
+                  <span class="text-xs text-slate-600">Request Hub Logistics & Transport Assistance</span>
+                </label>
+              </div>
+
+              <button 
+                type="submit" 
+                class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition duration-150 flex items-center justify-center gap-2 shadow-sm text-sm"
+              >
+                <span>+</span> List E-Credits for Sale
+              </button>
+            </form>
+
+            <div id="formSuccessToast" class="hidden mt-4 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg flex items-center gap-2">
+              <span>✓</span> Listing published and available for corporate buyout!
+            </div>
+          </section>
+
+          <!-- Dynamic Feed Section (7 Cols in Seller mode, 12 Cols in Buyer mode) -->
+          <section id="marketplaceListingsWrapper" class="lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <div>
+                <h2 id="feedTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
+                  <span>🏢</span> Corporate Buyer Marketplace
+                </h2>
+                <p id="feedSubtitle" class="text-xs text-slate-500">Acquire certified e-waste credits to fulfill EPR compliance</p>
+              </div>
+              <span id="marketplaceModeBadge" class="text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full">Buyer View</span>
+            </div>
+
+            <!-- Filter & Search Toolbar -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex flex-wrap gap-1.5">
+                <button id="filterAll" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-white">All</button>
+                <button id="filterAvailable" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200">Available</button>
+                <button id="filterScheduled" class="hidden px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200">⏰ Scheduled</button>
+                <button id="filterPurchased" class="px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200">Purchased</button>
+              </div>
+
+              <div class="text-xs text-slate-500">
+                Showing: <span id="filteredCount" class="font-bold text-slate-700">0</span> listings
+              </div>
+            </div>
+
+            <!-- Listings Container -->
+            <div id="listingsContainer" class="space-y-3.5">
+              <!-- Dynamically populated cards -->
+            </div>
+
+            <!-- Empty state placeholder -->
+            <div id="emptyState" class="hidden text-center py-12 border-2 border-dashed border-slate-200 rounded-lg">
+              <span class="text-3xl block mb-2">📋</span>
+              <p id="emptyStateTitle" class="text-sm font-medium text-slate-600">No matching credit listings found.</p>
+              <p id="emptyStateDesc" class="text-xs text-slate-400 mt-1">Submit a new offer using the Scrapper portal!</p>
+            </div>
+          </section>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: SCRAP PICKUP LOGISTICS SERVICE -->
+      <div id="viewLogistics" class="hidden space-y-6">
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🚚</span> Doorstep Scrap Pickup & Haulage Logistics
+              </h2>
+              <p class="text-xs text-slate-500">Schedule certified electric haulers & industrial transport from scrap collection points to processing facilities.</p>
+            </div>
+            <span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full">Service Partner</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <!-- Logistics Form (6 Cols) -->
+            <div class="md:col-span-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <h3 class="text-sm font-bold text-slate-800 mb-3">Book Fleet Transport</h3>
+              <form id="logisticsForm" class="space-y-4">
+                <div>
+                  <label for="pickupAddress" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Origin / Scrapper Yard Address</label>
+                  <input type="text" id="pickupAddress" required placeholder="e.g., Plot 42, MIDC Industrial Area, Nagpur" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="vehicleType" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Vehicle Size</label>
+                    <select id="vehicleType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <option value="Mini Van (Up to 500 kg)">Mini Van (Up to 500 kg)</option>
+                      <option value="3-Ton LCV Hauler">3-Ton LCV Hauler</option>
+                      <option value="10-Ton Heavy Multi-Axle">10-Ton Heavy Multi-Axle</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="pickupDate" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Preferred Pickup Date</label>
+                    <input type="date" id="pickupDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label for="estimatedWeight" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Estimated Load (kg)</label>
+                    <input type="number" id="estimatedWeight" required min="50" placeholder="e.g., 850" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                  </div>
+                  <div>
+                    <label for="handlingNotes" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Handling Category</label>
+                    <select id="handlingNotes" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                      <option value="Hazardous / Acid Battery Handling">Hazardous / Battery</option>
+                      <option value="Dry Electronics & Boards">Dry Electronics & PCBs</option>
+                      <option value="Baled Plastic Scrap">Baled Plastics</option>
+                    </select>
+                  </div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                  <span>🚚</span> Confirm Transport Dispatch
+                </button>
+              </form>
+              
+              <div id="logisticsSuccess" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg">
+                ✓ Transport vehicle dispatched! Dispatch ID: <strong id="dispatchCode">TRK-9821</strong>
+              </div>
+            </div>
+
+            <!-- Active Dispatches (6 Cols) -->
+            <div class="md:col-span-6 space-y-4">
+              <h3 class="text-sm font-bold text-slate-800">Scheduled Transport Fleet</h3>
+              <div id="logisticsList" class="space-y-3">
+                <!-- Dynamically populated dispatches -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: LAB AUDIT & PURITY VERIFICATION SERVICE -->
+      <div id="viewVerification" class="hidden space-y-6">
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+            <div>
+              <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                <span>🔬</span> Third-Party Lab Quality & Purity Auditing
+              </h2>
+              <p class="text-xs text-slate-500">Independent laboratory assay testing for precious metals, hazardous elements, and regulatory recycling purity.</p>
+            </div>
+            <span class="text-xs bg-purple-100 text-purple-800 font-semibold px-2.5 py-1 rounded-full">ISO/IEC 17025 Accredited</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            <!-- Request Audit Form (5 Cols) -->
+            <div class="md:col-span-5 bg-purple-50/50 p-5 rounded-xl border border-purple-100">
+              <h3 class="text-sm font-bold text-purple-900 mb-3">Submit Batch for Lab Assay</h3>
+              <form id="auditForm" class="space-y-4">
+                <div>
+                  <label for="auditBatchId" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Batch / Lot Reference</label>
+                  <input type="text" id="auditBatchId" required placeholder="e.g., LOT-2026-EW-412" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <div>
+                  <label for="assayType" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Required Inspection Assay</label>
+                  <select id="assayType" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-purple-500">
+                    <option value="Precious Metal Spectrometry (Au, Ag, Cu)">Precious Metal Spectrometry (Au, Ag, Cu)</option>
+                    <option value="RoHS Hazardous Substance Purity (Pb, Hg, Cd)">RoHS Hazardous Substance Purity</option>
+                    <option value="Polymer Degradation & Grade Assay">Polymer Degradation & Grade Assay</option>
+                    <option value="Full EPR Lifecycle Recyclability Index">Full EPR Recyclability Index</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="labFacility" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Accredited Testing Facility</label>
+                  <select id="labFacility" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white focus:ring-2 focus:ring-purple-500">
+                    <option value="National Environmental Testing Lab - Nagpur">National Lab - Nagpur</option>
+                    <option value="Apex Materials Analytical Center - Pune">Apex Analytical - Pune</option>
+                    <option value="Central Pollution Control Board Empanelled Lab">CPCB Empanelled Lab</option>
+                  </select>
+                </div>
+
+                <button type="submit" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-2.5 px-4 rounded-lg text-xs transition flex items-center justify-center gap-2">
+                  <span>🔬</span> Order Testing & Purity Seal
+                </button>
+              </form>
+
+            <div id="auditSuccess" class="hidden mt-3 p-3 bg-purple-100 border border-purple-200 text-purple-900 text-xs rounded-lg">
+              ✓ Lab sample collection scheduled! Assay Token: <strong id="assayToken">ASM-5501</strong>
+            </div>
+          </div>
+
+          <!-- Audit Log Cards (7 Cols) -->
+          <div class="md:col-span-7 space-y-4">
+            <h3 class="text-sm font-bold text-slate-800">Recent Lab Assays & Quality Ratings</h3>
+            <div id="auditList" class="space-y-3">
+              <!-- Dynamically populated assays -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: EPR CERTIFICATES / SALES RECEIPTS -->
+    <div id="viewCertificates" class="hidden space-y-6">
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-6">
+          <div>
+            <h2 id="certificatesViewTitle" class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span>📜</span> Official EPR Compliance Certificates
+            </h2>
+            <p id="certificatesViewSubtitle" class="text-xs text-slate-500">Verifiable corporate offset certificates issued upon credit acquisition for regulatory filing.</p>
+          </div>
+          <span id="certificatesBadge" class="text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-1 rounded-full">CPCB / Regulatory Ready</span>
+        </div>
+
+        <div id="certificatesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Dynamically populated certificate cards -->
+        </div>
+
+        <div id="noCertificates" class="hidden text-center py-12 border-2 border-dashed border-slate-200 rounded-lg">
+          <span class="text-3xl block mb-2">📄</span>
+          <p id="noCertTitle" class="text-sm font-medium text-slate-600">No EPR Certificates Issued Yet.</p>
+          <p id="noCertDesc" class="text-xs text-slate-400 mt-1">Purchase credits in the Marketplace tab to automatically generate compliant proof certificates!</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: HELP & ADVANCED AI ASSISTANT -->
+    <div id="viewHelp" class="hidden space-y-6">
+      
+      <!-- Top Help Center Banner -->
+      <div class="bg-gradient-to-r from-emerald-800 to-slate-900 text-white rounded-2xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-1">
+            <span class="text-xs bg-emerald-500/20 text-emerald-300 font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">Support & Advisory Hub</span>
+            <span class="text-xs text-slate-300">&bull; 24/7 Multi-Role Assistance</span>
+          </div>
+          <h2 class="text-xl font-bold">How Can We Help You Today?</h2>
+          <p class="text-xs text-slate-300 mt-1 max-w-2xl leading-relaxed">
+            Connect with regional coordinators, resolve lot disputes, file support tickets, or consult your personal Advanced EcoAI Assistant.
+          </p>
+        </div>
+        <button id="openAiDrawerBtn" class="bg-emerald-500 hover:bg-emerald-400 text-slate-900 text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2 shrink-0">
+          <span>✨</span> Chat with Personal AI Advisor
+        </button>
+      </div>
+
+      <!-- Two-Column Grid: Role Help & Contact (Left) + Embedded AI Console (Right) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Support Tickets & Guidance (6 Cols) -->
+        <div class="lg:col-span-6 space-y-6">
+          
+          <!-- Role Specific FAQs & Knowledge -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 id="helpFaqTitle" class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+              <span>💡</span> Role Help & Operating Guide
+            </h3>
+            <div id="helpFaqContent" class="space-y-3 text-xs text-slate-600">
+              <!-- Dynamically populated based on role -->
+            </div>
+          </div>
+
+          <!-- Contact & Dispute / Connection Request Form -->
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+              <span>📬</span> Submit Help Ticket / Connect Request
+            </h3>
+            <p class="text-xs text-slate-500 mb-4">Need mediation between buyer and scrapper, dispute resolution, or transport assistance? Our desk resolves requests within 2 hours.</p>
+
+            <form id="helpTicketForm" class="space-y-3 text-xs">
+              <div>
+                <label for="ticketContactName" class="block font-semibold text-slate-600 uppercase mb-1">Your Contact Name / Entity</label>
+                <input type="text" id="ticketContactName" required placeholder="e.g., GreenRecycle Nagpur" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500">
+              </div>
+
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label for="ticketCategory" class="block font-semibold text-slate-600 uppercase mb-1">Assistance Category</label>
+                  <select id="ticketCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                    <option value="Lot Purity / Lab Assay Query">Lot Purity / Lab Query</option>
+                    <option value="Logistics Pickup Delay">Logistics Pickup Issue</option>
+                    <option value="Payment Payout / Escrow Dispute">Payment & Escrow Inquiry</option>
+                    <option value="EPR Regulatory Filing Question">EPR Filing Question</option>
+                    <option value="Direct Buyer/Seller Mediation">Direct Buyer/Seller Mediation</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="ticketPriority" class="block font-semibold text-slate-600 uppercase mb-1">Priority Level</label>
+                  <select id="ticketPriority" class="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white">
+                    <option value="Normal">Normal (24h turnaround)</option>
+                    <option value="Urgent">Urgent (2h fast-track)</option>
+                    <option value="Critical Compliance">Critical Compliance</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label for="ticketMessage" class="block font-semibold text-slate-600 uppercase mb-1">Details & Order / Batch ID</label>
+                <textarea id="ticketMessage" required rows="3" placeholder="Describe the issue or specify the lot/transport ID you need assistance with..." class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500"></textarea>
+              </div>
+
+              <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 px-4 rounded-lg transition shadow text-xs flex items-center justify-center gap-1.5">
+                <span>✉️</span> Submit Support Request
+              </button>
+            </form>
+
+            <div id="ticketSuccessToast" class="hidden mt-3 p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs rounded-lg">
+              ✓ Support Ticket Logged! Case Ref: <strong id="ticketCaseRef">TCK-2026-904</strong>. An EcoCredit coordinator has been notified.
+            </div>
+          </div>
+
+          <!-- Regional Live Support Directory -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs flex justify-between items-center">
+            <div>
+              <p class="font-bold text-slate-800">Regional Coordinator Hub (Nagpur & MH)</p>
+              <p class="text-slate-500 text-[11px] mt-0.5">Direct Desk: MIDC Hingna Hub, Nagpur &bull; Email: help@ecocredit.exchange</p>
+            </div>
+            <span class="text-emerald-700 font-bold bg-emerald-100 px-2.5 py-1 rounded-md text-[11px]">
+              🟢 Live Desk Online
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Personal Advanced AI Assistant Console (6 Cols) -->
+        <div class="lg:col-span-6 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[600px]">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100 mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-2xl">🤖</span>
+              <div>
+                <h3 class="text-sm font-bold text-slate-800">EcoAI Advanced Assistant</h3>
+                <p id="aiSubtitleRole" class="text-[11px] text-slate-500">Personalized advisor for recycling credits & EPR compliance</p>
+              </div>
+            </div>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full border border-emerald-200">
+              GPT-4 / Gemini Turbo
+            </span>
+          </div>
+
+          <!-- Suggested Quick Prompts -->
+          <div class="mb-3">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Recommended Questions:</span>
+            <div id="aiQuickChips" class="flex flex-wrap gap-1.5">
+              <!-- Dynamically populated based on role -->
+            </div>
+          </div>
+
+          <!-- Chat Conversation Log -->
+          <div id="chatMessages" class="flex-grow overflow-y-auto space-y-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+            <!-- Initial Greeting -->
+            <div class="chat-bubble-ai p-3 max-w-[85%] shadow-xs">
+              <p id="aiInitialGreeting" class="leading-relaxed">
+                Hello! I am your personal EcoAI Assistant. How can I assist you with e-credits, market prices, or regulatory verification today?
+              </p>
+            </div>
+          </div>
+
+          <!-- Chat Input Form -->
+          <form id="chatInputForm" class="mt-3 flex gap-2">
+            <input 
+              type="text" 
+              id="chatUserInput" 
+              placeholder="Ask anything about e-credits, EPR rules, or logistics..." 
+              required 
+              class="flex-grow px-3 py-2 border border-slate-300 rounded-xl text-xs bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            />
+            <button 
+              type="submit" 
+              class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-xs transition shadow-sm flex items-center gap-1 shrink-0"
+            >
+              <span>Send</span> <span>&rarr;</span>
+            </button>
+          </form>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Interactive Buy Credits Modal (Used in Buyer Mode) -->
+  <div id="buyModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+      <div class="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <span>🏢</span> Confirm Credit Acquisition
+        </h3>
+        <button id="closeBuyModal" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+      </div>
+
+      <div id="modalListingSummary" class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-1.5 mb-4">
+        <!-- Populated via JS -->
+      </div>
+
+      <form id="confirmPurchaseForm" class="space-y-4">
+        <div>
+          <label for="companyBuyerName" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Purchasing Corporation Name</label>
+          <input type="text" id="companyBuyerName" required placeholder="e.g., Tata Electronics Corp" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500">
+        </div>
+
+        <div>
+          <label for="eprTargetCategory" class="block text-xs font-semibold text-slate-600 uppercase mb-1">Offset Allocation Category</label>
+          <select id="eprTargetCategory" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs bg-white">
+            <option value="Mandatory Annual EPR Quota (Rule 2026)">Mandatory Annual EPR Quota</option>
+            <option value="Voluntary ESG Carbon Neutrality Scope 3">Voluntary ESG Scope 3 Target</option>
+            <option value="Zero Waste to Landfill Compliance">Zero Waste to Landfill Compliance</option>
+          </select>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition shadow-sm flex items-center justify-center gap-2">
+          <span>✓</span> Complete Purchase & Issue Certificate
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- FLOATING AI ASSISTANT QUICK LAUNCHER BUTTON -->
+  <div class="fixed bottom-5 right-5 z-40">
+    <button id="floatingAiToggle" class="bg-emerald-700 hover:bg-emerald-600 text-white p-3.5 rounded-full shadow-2xl flex items-center gap-2 text-xs font-bold transition-all hover:scale-105 border-2 border-white/40">
+      <span class="text-base">✨</span>
+      <span class="hidden sm:inline">Ask EcoAI</span>
+    </button>
+  </div>
+
+  <footer class="bg-white border-t border-slate-200 text-slate-400 text-xs py-4 text-center mt-auto">
+    EcoCredit Exchange & EPR Lifecycle Management System &bull; Step-by-Step Learning Project
+  </footer>
+  </div>
+
+  <script>
+    // ================= 1. STATE & AUTHENTICATION =================
+    let currentUser = null; // { role: 'seller'|'buyer', name: string, sub: string, badgeText: string }
+
+    let listings = [
+      {
+        id: 1,
+        scrapper: "Vidarbha EcoRecyclers",
+        type: "E-Waste (Circuits & PCBs)",
+        hub: "Nagpur Central Facility",
+        credits: 120,
+        price: 16.5,
+        status: "available",
+        hasLabAssay: true,
+        buyer: null,
+        date: "Today"
+      },
+      {
+        id: 2,
+        scrapper: "City Battery Reclaimers",
+        type: "Lithium-Ion EV Batteries",
+        hub: "Pune Recycling Hub",
+        credits: 80,
+        price: 24,
+        status: "available",
+        hasLabAssay: true,
+        buyer: null,
+        date: "Today"
+      },
+      {
+        id: 4,
+        scrapper: "Vidarbha EcoRecyclers",
+        type: "Industrial Copper Scrap",
+        hub: "Nagpur Central Facility",
+        credits: 150,
+        price: 18.5,
+        status: "scheduled",
+        scheduledTime: "2026-10-18T10:00",
+        scheduledDisplay: "Oct 18, 2026 at 10:00 AM",
+        hasLabAssay: true,
+        buyer: null,
+        date: "Scheduled"
+      },
+      {
+        id: 3,
+        scrapper: "SunGreen Solar Recyclers",
+        type: "Solar PV Modules",
+        hub: "Mumbai Coastal Depot",
+        credits: 300,
+        price: 9.5,
+        status: "purchased",
+        hasLabAssay: false,
+        buyer: "Mahindra Tech Solutions",
+        date: "Yesterday"
+      }
+    ];
+
+    let logistics = [
+      {
+        id: "TRK-8921",
+        address: "Plot 18, Hingna Industrial Area, Nagpur",
+        vehicle: "3-Ton LCV Hauler",
+        weight: "1,200 kg",
+        date: "2026-10-18",
+        status: "En Route to Yard"
+      },
+      {
+        id: "TRK-7440",
+        address: "Bhosari Electronics Cluster, Pune",
+        vehicle: "Mini Van (Up to 500 kg)",
+        weight: "350 kg",
+        date: "2026-10-17",
+        status: "Scheduled for Pickup"
+      }
+    ];
+
+    let assays = [
+      {
+        token: "ASM-4402",
+        batchId: "LOT-2026-EW-891",
+        type: "Precious Metal Spectrometry (Au, Ag, Cu)",
+        lab: "National Environmental Testing Lab - Nagpur",
+        score: "99.4% Recyclable Content",
+        status: "Certified Verified"
+      },
+      {
+        token: "ASM-3810",
+        batchId: "LOT-2026-BAT-102",
+        type: "RoHS Hazardous Substance Purity",
+        lab: "Apex Materials Analytical Center - Pune",
+        score: "Zero Mercury / Lead Neutralized",
+        status: "Certified Verified"
+      }
+    ];
+
+    let certificates = [
+      {
+        id: "EPR-2026-00389",
+        company: "Mahindra Tech Solutions",
+        credits: 300,
+        type: "Solar PV Modules",
+        scrapper: "SunGreen Solar Recyclers",
+        date: "2026-10-14",
+        offsetHash: "0x89f4b1e772c91a0f",
+        quotaType: "Mandatory Annual EPR Quota"
+      }
+    ];
+
+    let currentFilter = 'all';
+    let pendingPurchaseListing = null;
+
+    // ================= 2. AUTHENTICATION & LOGIN FLOW =================
+    const authScreen = document.getElementById('authScreen');
+    const appContainer = document.getElementById('appContainer');
+    const roleChooserStep = document.getElementById('roleChooserStep');
+    const sellerLoginForm = document.getElementById('sellerLoginForm');
+    const buyerLoginForm = document.getElementById('buyerLoginForm');
+
+    const btnSelectSeller = document.getElementById('btnSelectSeller');
+    const btnSelectBuyer = document.getElementById('btnSelectBuyer');
+    const chooseSellerCard = document.getElementById('chooseSellerCard');
+    const chooseBuyerCard = document.getElementById('chooseBuyerCard');
+    const btnBackFromSeller = document.getElementById('btnBackFromSeller');
+    const btnBackFromBuyer = document.getElementById('btnBackFromBuyer');
+
+    const formSellerAuth = document.getElementById('formSellerAuth');
+    const formBuyerAuth = document.getElementById('formBuyerAuth');
+    const btnDemoSeller = document.getElementById('btnDemoSeller');
+    const btnDemoBuyer = document.getElementById('btnDemoBuyer');
+    const btnLogout = document.getElementById('btnLogout');
+    const userProfileBadge = document.getElementById('userProfileBadge');
+
+    function showRoleChooser() {
+      roleChooserStep.classList.remove('hidden');
+      sellerLoginForm.classList.add('hidden');
+      buyerLoginForm.classList.add('hidden');
+    }
+
+    function openSellerLogin() {
+      roleChooserStep.classList.add('hidden');
+      sellerLoginForm.classList.remove('hidden');
+    }
+
+    function openBuyerLogin() {
+      roleChooserStep.classList.add('hidden');
+      buyerLoginForm.classList.remove('hidden');
+    }
+
+    chooseSellerCard.addEventListener('click', openSellerLogin);
+    btnSelectSeller.addEventListener('click', (e) => { e.stopPropagation(); openSellerLogin(); });
+    chooseBuyerCard.addEventListener('click', openBuyerLogin);
+    btnSelectBuyer.addEventListener('click', (e) => { e.stopPropagation(); openBuyerLogin(); });
+
+    btnBackFromSeller.addEventListener('click', showRoleChooser);
+    btnBackFromBuyer.addEventListener('click', showRoleChooser);
+
+    btnDemoSeller.addEventListener('click', () => {
+      document.getElementById('inputSellerName').value = "Vidarbha EcoRecyclers";
+      document.getElementById('inputSellerHub').value = "Nagpur Central Facility";
+    });
+
+    btnDemoBuyer.addEventListener('click', () => {
+      document.getElementById('inputBuyerName').value = "Tata Electronics Corp";
+      document.getElementById('inputBuyerTarget').value = "Mandatory Annual EPR Quota (Rule 2026)";
+    });
+
+    function setLoggedInUser(user) {
+      currentUser = user;
+      try {
+        localStorage.setItem('ecocredit_user', JSON.stringify(user));
+      } catch (err) {}
+
+      authScreen.classList.add('hidden');
+      appContainer.classList.remove('hidden');
+      applyRoleAdaptations();
+    }
+
+    function logoutUser() {
+      currentUser = null;
+      try {
+        localStorage.removeItem('ecocredit_user');
+      } catch (err) {}
+
+      appContainer.classList.add('hidden');
+      authScreen.classList.remove('hidden');
+      showRoleChooser();
+    }
+
+    btnLogout.addEventListener('click', logoutUser);
+
+    formSellerAuth.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('inputSellerName').value.trim() || "Vidarbha EcoRecyclers";
+      const hub = document.getElementById('inputSellerHub').value;
+      setLoggedInUser({
+        role: 'seller',
+        name: name,
+        sub: hub,
+        badgeText: `Seller: ${name} (${hub})`
+      });
+    });
+
+    formBuyerAuth.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('inputBuyerName').value.trim() || "Tata Electronics Corp";
+      const target = document.getElementById('inputBuyerTarget').value;
+      setLoggedInUser({
+        role: 'buyer',
+        name: name,
+        sub: target,
+        badgeText: `Buyer: ${name}`
+      });
+    });
+
+    // ================= 3. ROLE ADAPTATION ENGINE =================
+    const scrapperSectionWrapper = document.getElementById('scrapperSectionWrapper');
+    const marketplaceListingsWrapper = document.getElementById('marketplaceListingsWrapper');
+    const roleHeroBanner = document.getElementById('roleHeroBanner');
+    const feedTitle = document.getElementById('feedTitle');
+    const feedSubtitle = document.getElementById('feedSubtitle');
+    const marketplaceModeBadge = document.getElementById('marketplaceModeBadge');
+    const emptyStateTitle = document.getElementById('emptyStateTitle');
+    const emptyStateDesc = document.getElementById('emptyStateDesc');
+
+    const tabMarketplaceIcon = document.getElementById('tabMarketplaceIcon');
+    const tabMarketplaceLabel = document.getElementById('tabMarketplaceLabel');
+    const tabCertificatesLabel = document.getElementById('tabCertificatesLabel');
+    const certificatesViewTitle = document.getElementById('certificatesViewTitle');
+    const certificatesViewSubtitle = document.getElementById('certificatesViewSubtitle');
+    const certificatesBadge = document.getElementById('certificatesBadge');
+    const noCertTitle = document.getElementById('noCertTitle');
+    const noCertDesc = document.getElementById('noCertDesc');
+
+    // Help & AI DOM Elements
+    const helpFaqTitle = document.getElementById('helpFaqTitle');
+    const helpFaqContent = document.getElementById('helpFaqContent');
+    const aiSubtitleRole = document.getElementById('aiSubtitleRole');
+    const aiInitialGreeting = document.getElementById('aiInitialGreeting');
+    const aiQuickChips = document.getElementById('aiQuickChips');
+    const ticketContactName = document.getElementById('ticketContactName');
+
+    function applyRoleAdaptations() {
+      if (!currentUser) return;
+
+      const isSeller = currentUser.role === 'seller';
+
+      // Header Profile Badge
+      userProfileBadge.innerHTML = `
+        <span class="inline-block w-2 h-2 rounded-full ${isSeller ? 'bg-emerald-400' : 'bg-blue-400'} animate-pulse"></span>
+        <span class="text-xs text-white font-medium">${isSeller ? '📦' : '🏢'} ${currentUser.badgeText}</span>
+      `;
+
+      // Pre-fill Support ticket contact
+      if (ticketContactName) {
+        ticketContactName.value = currentUser.name;
+      }
+
+      // Adapt Navigation Labels according to role
+      if (isSeller) {
+        tabMarketplaceIcon.textContent = "📦";
+        tabMarketplaceLabel.textContent = "My Inventory & Offerings";
+        tabCertificatesLabel.textContent = "Sales & Payout Records";
+        certificatesViewTitle.innerHTML = `<span>📜</span> Recycler Sales & Compliance Records`;
+        certificatesViewSubtitle.textContent = `Historical record of e-credits sold to corporate buyers and offset verification hashes.`;
+        certificatesBadge.textContent = "Verified Recycler Records";
+        certificatesBadge.className = "text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-1 rounded-full";
+        noCertTitle.textContent = "No Credits Sold Yet.";
+        noCertDesc.textContent = "Once a corporate company buys your listed e-credits, transaction proof records will appear here!";
+
+        // Help FAQs for Seller
+        helpFaqTitle.innerHTML = `<span>📦</span> Recycler & Scrapper Operating Guide`;
+        helpFaqContent.innerHTML = `
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">1. How do I get paid for my scrap credits?</strong>
+            <p class="text-slate-500 mt-0.5">When a corporation buys your credits, funds are credited directly to your registered bank account via escrow settlement within 24 hours.</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">2. Why order a Third-Party Lab Audit?</strong>
+            <p class="text-slate-500 mt-0.5">Lab-tested lots command a 15–20% price premium because buyers prefer pre-verified RoHS and CPCB purity assays.</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">3. Yard Pickup & Haulage:</strong>
+            <p class="text-slate-500 mt-0.5">You can dispatch 500 kg to 10-ton vehicles directly to your yard in the "Scrap Pickup Logistics" tab.</p>
+          </div>
+        `;
+
+        // AI Assistant configuration for Seller
+        aiSubtitleRole.textContent = `Advising ${currentUser.name} on pricing, scrap grading & logistics`;
+        aiInitialGreeting.textContent = `Hello ${currentUser.name}! I am your personal EcoAI Seller Advisor. Ask me about scrap market price benchmarks, battery shipping protocols, or how to boost your sales.`;
+        
+        aiQuickChips.innerHTML = `
+          <button class="ai-chip bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            💡 What is the current E-Waste market rate?
+          </button>
+          <button class="ai-chip bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            🔋 Safe packaging for EV Lithium Batteries?
+          </button>
+          <button class="ai-chip bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            🚚 How to request doorstep yard pickup?
+          </button>
+        `;
+      } else {
+        tabMarketplaceIcon.textContent = "🏪";
+        tabMarketplaceLabel.textContent = "Credit Marketplace";
+        tabCertificatesLabel.textContent = "EPR Certificates";
+        certificatesViewTitle.innerHTML = `<span>📜</span> Official EPR Compliance Certificates`;
+        certificatesViewSubtitle.textContent = `Verifiable corporate offset certificates issued upon credit acquisition for regulatory filing.`;
+        certificatesBadge.textContent = "CPCB / Regulatory Ready";
+        certificatesBadge.className = "text-xs bg-blue-100 text-blue-800 font-semibold px-2.5 py-1 rounded-full";
+        noCertTitle.textContent = "No EPR Certificates Issued Yet.";
+        noCertDesc.textContent = "Purchase credits in the Marketplace tab to automatically generate compliant proof certificates!";
+
+        // Help FAQs for Buyer
+        helpFaqTitle.innerHTML = `<span>🏢</span> Corporate Buyer Compliance Guide`;
+        helpFaqContent.innerHTML = `
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">1. How do EPR Compliance Certificates work?</strong>
+            <p class="text-slate-500 mt-0.5">Every credit purchased comes with an official tamper-proof certificate and cryptographic hash recognized by the Central Pollution Control Board (CPCB).</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">2. Can credits offset Scope 3 Carbon emissions?</strong>
+            <p class="text-slate-500 mt-0.5">Yes, recycled scrap credits count directly toward voluntary ESG reporting under circular economy frameworks.</p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <strong class="text-slate-800">3. Custom Quotas & Large Orders:</strong>
+            <p class="text-slate-500 mt-0.5">Submit a ticket using the form below for customized annual volume off-take contracts with regional recycling hubs.</p>
+          </div>
+        `;
+
+        // AI Assistant configuration for Buyer
+        aiSubtitleRole.textContent = `Advising ${currentUser.name} on EPR compliance & offset quotas`;
+        aiInitialGreeting.textContent = `Welcome ${currentUser.name}! I am your Corporate EPR & ESG Advisor. Ask me how to calculate your annual offset requirements or verify lot audit hashes.`;
+        
+        aiQuickChips.innerHTML = `
+          <button class="ai-chip bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            📜 How is the cryptographic hash verified?
+          </button>
+          <button class="ai-chip bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            ⚖️ Which scrap qualifies for CPCB Rule 2026?
+          </button>
+          <button class="ai-chip bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 px-2.5 py-1 rounded-lg text-[11px] font-medium transition">
+            📊 Estimate credits needed for 10 tons electronics
+          </button>
+        `;
+      }
+
+      // Attach listener to AI chips
+      document.querySelectorAll('.ai-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const query = chip.textContent.trim().replace(/^[^\w\s]+/, '').trim();
+          sendAiChatMessage(query);
+        });
+      });
+
+      // Adapt Views between Seller & Buyer
+      if (isSeller) {
+        // Show Seller Form
+        scrapperSectionWrapper.classList.remove('hidden');
+        scrapperSectionWrapper.className = "lg:col-span-5 bg-white p-6 rounded-xl border border-slate-200 shadow-sm h-fit";
+        marketplaceListingsWrapper.className = "lg:col-span-7 bg-white p-6 rounded-xl border border-slate-200 shadow-sm";
+
+        filterScheduled.classList.remove('hidden');
+        feedTitle.innerHTML = `<span>📦</span> My Listed Credits & Offerings`;
+        feedSubtitle.textContent = `Live status of your published credit batches awaiting corporate buyout`;
+        marketplaceModeBadge.textContent = "Seller Inventory";
+        marketplaceModeBadge.className = "text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded-full";
+        emptyStateTitle.textContent = "No active listings from your yard.";
+        emptyStateDesc.textContent = "Use the form on the left to publish e-waste or scrap credits for sale!";
+
+        document.getElementById('scrapperName').value = currentUser.name;
+        document.getElementById('hubLocation').value = currentUser.sub;
+
+        roleHeroBanner.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">Seller Workspace</span>
+              <span class="text-xs text-slate-400">&bull; Operating Hub: <strong>${currentUser.sub}</strong></span>
+            </div>
+            <h2 class="text-base font-bold text-slate-800">Recycler Credit Listing & Sales Hub</h2>
+            <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+              List scrap volumes from your collection facility, track buyer payouts, or dispatch certified logistics vehicles to haul material.
+            </p>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <button id="quickLogisticsBtn" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold px-3 py-2 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition">
+              <span>🚚</span> Book Scrap Pickup
+            </button>
+            <button id="quickVerifyBtn" class="bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold px-3 py-2 rounded-lg border border-purple-200 flex items-center gap-1.5 transition">
+              <span>🔬</span> Order Lab Audit
+            </button>
+          </div>
+        `;
+      } else {
+        // Buyer Mode
+        scrapperSectionWrapper.classList.add('hidden');
+        marketplaceListingsWrapper.className = "lg:col-span-12 bg-white p-6 rounded-xl border border-slate-200 shadow-sm";
+
+        filterScheduled.classList.add('hidden');
+        feedTitle.innerHTML = `<span>🏢</span> Corporate Buyer Marketplace`;
+        feedSubtitle.textContent = `Acquire certified e-waste credits to fulfill EPR compliance quotas`;
+        marketplaceModeBadge.textContent = "Corporate Buyer View";
+        marketplaceModeBadge.className = "text-xs bg-blue-100 text-blue-800 font-semibold px-2 py-0.5 rounded-full";
+        emptyStateTitle.textContent = "No matching credit listings found.";
+        emptyStateDesc.textContent = "Check back soon as recyclers add new verified credit batches.";
+
+        roleHeroBanner.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded border border-blue-200">Corporate Compliance Suite</span>
+              <span class="text-xs text-slate-400">&bull; Target: <strong>${currentUser.sub}</strong></span>
+            </div>
+            <h2 class="text-base font-bold text-slate-800">Welcome, ${currentUser.name}</h2>
+            <p class="text-xs text-slate-600 mt-1 max-w-2xl leading-relaxed">
+              Acquire certified e-waste and recycling credits from verified collection yards. Every buyout automatically issues an official tamper-proof EPR certificate.
+            </p>
+          </div>
+          <div class="flex gap-2 shrink-0">
+            <button id="quickCertBtn" class="bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold px-3.5 py-2 rounded-lg border border-blue-200 flex items-center gap-1.5 transition">
+              <span>📜</span> View Issued EPR Certificates
+            </button>
+          </div>
+        `;
+
+        const quickCertBtn = document.getElementById('quickCertBtn');
+        if (quickCertBtn) {
+          quickCertBtn.addEventListener('click', () => switchTab('certificates'));
+        }
+      }
+
+      const qLogistics = document.getElementById('quickLogisticsBtn');
+      const qVerify = document.getElementById('quickVerifyBtn');
+      if (qLogistics) qLogistics.addEventListener('click', () => switchTab('logistics'));
+      if (qVerify) qVerify.addEventListener('click', () => switchTab('verification'));
+
+      renderListings();
+      renderCertificates();
+    }
+
+    // ================= 4. TAB NAVIGATION =================
+    const tabs = {
+      marketplace: { nav: document.getElementById('navMarketplace'), view: document.getElementById('viewMarketplace') },
+      logistics: { nav: document.getElementById('navLogistics'), view: document.getElementById('viewLogistics') },
+      verification: { nav: document.getElementById('navVerification'), view: document.getElementById('viewVerification') },
+      certificates: { nav: document.getElementById('navCertificates'), view: document.getElementById('viewCertificates') },
+      help: { nav: document.getElementById('navHelp'), view: document.getElementById('viewHelp') }
+    };
+
+    function switchTab(targetTab) {
+      Object.keys(tabs).forEach(tabKey => {
+        const isTarget = tabKey === targetTab;
+        tabs[tabKey].view.classList.toggle('hidden', !isTarget);
+        tabs[tabKey].view.classList.toggle('block', isTarget);
+
+        if (isTarget) {
+          tabs[tabKey].nav.className = "py-2.5 px-1 border-b-2 border-white text-white font-semibold flex items-center gap-2 transition duration-150";
+        } else {
+          tabs[tabKey].nav.className = "py-2.5 px-1 border-b-2 border-transparent text-emerald-200 hover:text-white font-medium flex items-center gap-2 transition duration-150";
+        }
+      });
+    }
+
+    tabs.marketplace.nav.addEventListener('click', () => switchTab('marketplace'));
+    tabs.logistics.nav.addEventListener('click', () => switchTab('logistics'));
+    tabs.verification.nav.addEventListener('click', () => switchTab('verification'));
+    tabs.certificates.nav.addEventListener('click', () => switchTab('certificates'));
+    tabs.help.nav.addEventListener('click', () => switchTab('help'));
+
+    // Floating Button Launcher opens Help & AI tab
+    const floatingAiToggle = document.getElementById('floatingAiToggle');
+    const openAiDrawerBtn = document.getElementById('openAiDrawerBtn');
+
+    function jumpToAiAssistant() {
+      switchTab('help');
+      document.getElementById('chatUserInput').focus();
+    }
+
+    floatingAiToggle.addEventListener('click', jumpToAiAssistant);
+    openAiDrawerBtn.addEventListener('click', jumpToAiAssistant);
+
+    // ================= 5. RENDER MARKETPLACE & INVENTORY LISTINGS =================
+    const listingsContainer = document.getElementById('listingsContainer');
+    const emptyState = document.getElementById('emptyState');
+    const filteredCount = document.getElementById('filteredCount');
+
+    function renderListings() {
+      const isSeller = currentUser && currentUser.role === 'seller';
+
+      const filtered = listings.filter(item => {
+        // In Buyer mode, completely hide scheduled items
+        if (!isSeller && item.status === 'scheduled') return false;
+
+        if (currentFilter === 'available') return item.status === 'available';
+        if (currentFilter === 'scheduled') return item.status === 'scheduled';
+        if (currentFilter === 'purchased') return item.status === 'purchased';
+        return true;
+      });
+
+      filteredCount.textContent = filtered.length;
+      const statsSummary = document.getElementById('statsSummary');
+      if (statsSummary) {
+        const totalAvail = listings.filter(l => l.status === 'available').length;
+        const totalPurch = listings.filter(l => l.status === 'purchased').length;
+        statsSummary.textContent = `${totalAvail} Available | ${totalPurch} Purchased`;
+      }
+      listingsContainer.innerHTML = '';
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+      } else {
+        emptyState.classList.add('hidden');
+        filtered.forEach(item => {
+          const isPurchased = item.status === 'purchased';
+          const card = document.createElement('div');
+          card.className = `p-4 rounded-xl border transition duration-150 ${
+            isPurchased 
+              ? 'bg-slate-50 border-slate-200 opacity-90' 
+              : 'bg-white border-slate-200 hover:border-emerald-300 hover:shadow-sm'
+          }`;
+
+          let actionControls = '';
+
+          if (isSeller) {
+            if (isPurchased) {
+              actionControls = `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-md flex items-center gap-1">
+                    <span>✓</span> Sold to ${item.buyer || 'Corporation'} &bull; Payout Credited: $${(item.credits * item.price).toLocaleString()}
+                  </span>
+                </div>
+              `;
+            } else if (item.status === 'scheduled') {
+              actionControls = `
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-md flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span> ⏰ Scheduled: ${item.scheduledDisplay || item.scheduledTime}
+                  </span>
+                  <button data-id="${item.id}" class="publish-now-btn text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-2.5 py-1 rounded shadow-xs transition">
+                    Publish Now
+                  </button>
+                  <button data-id="${item.id}" class="withdraw-btn text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded border border-rose-200 transition">
+                    Cancel
+                  </button>
+                </div>
+              `;
+            } else {
+              actionControls = `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Listed for Sale
+                  </span>
+                  <button data-id="${item.id}" class="withdraw-btn text-xs text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2 py-1 rounded border border-rose-200 transition">
+                    Withdraw
+                  </button>
+                </div>
+              `;
+            }
+          } else {
+            if (isPurchased) {
+              actionControls = `
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold text-slate-500 bg-slate-200 px-3 py-1 rounded-md">
+                    Sold to ${item.buyer || 'Corporation'}
+                  </span>
+                </div>
+              `;
+            } else {
+              actionControls = `
+                <button 
+                  data-id="${item.id}" 
+                  class="open-buy-btn bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg shadow-sm transition duration-150 flex items-center gap-1"
+                >
+                  <span>Buy & Offset</span> →
+                </button>
+              `;
+            }
+          }
+
+          card.innerHTML = `
+            <div class="flex flex-wrap justify-between items-start gap-2 mb-2">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    isPurchased ? 'bg-slate-200 text-slate-600' : 'bg-emerald-100 text-emerald-800'
+                  }">
+                    ${item.type}
+                  </span>
+                  ${item.hasLabAssay ? '<span class="text-[10px] bg-purple-100 text-purple-800 font-semibold px-1.5 py-0.5 rounded border border-purple-200">🔬 Lab Audited</span>' : ''}
+                </div>
+                <h3 class="text-sm font-bold text-slate-800 mt-1">${item.scrapper}</h3>
+                <span class="text-xs text-slate-400">📍 ${item.hub || 'Nagpur Facility'}</span>
+              </div>
+              <div class="text-right">
+                <span class="text-xs text-slate-400 block">${item.date}</span>
+                <span class="text-sm font-bold text-slate-900">$${item.price} <span class="text-xs font-normal text-slate-500">/ credit</span></span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center pt-3 border-t border-slate-100 mt-2 gap-2">
+              <div class="text-xs text-slate-600">
+                <span class="font-bold text-slate-800">${item.credits}</span> Credits ${isSeller ? 'offered' : 'available'} 
+                <span class="text-slate-400 font-mono">(Total Value: $${(item.credits * item.price).toLocaleString()})</span>
+              </div>
+
+              ${actionControls}
+            </div>
+          `;
+
+          listingsContainer.appendChild(card);
+        });
+
+        // Attach buyer modal trigger listeners
+        document.querySelectorAll('.open-buy-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = Number(btn.getAttribute('data-id'));
+            openPurchaseModal(id);
+          });
+        });
+
+        // Attach seller withdraw listeners
+        document.querySelectorAll('.withdraw-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = Number(btn.getAttribute('data-id'));
+            listings = listings.filter(l => l.id !== id);
+            renderListings();
+          });
+        });
+
+        // Attach publish-now listeners for scheduled listings
+        document.querySelectorAll('.publish-now-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = Number(btn.getAttribute('data-id'));
+            const target = listings.find(l => l.id === id);
+            if (target) {
+              target.status = 'available';
+              target.date = 'Just now';
+              formToast.innerHTML = `<span>✓</span> <strong>${target.type}</strong> has been published to the live market!`;
+              formToast.classList.remove('hidden');
+              setTimeout(() => formToast.classList.add('hidden'), 3500);
+              renderListings();
+            }
+          });
+        });
+      }
+    }
+
+    // ================= 6. MODAL PURCHASE LOGIC =================
+    const buyModal = document.getElementById('buyModal');
+    const closeBuyModal = document.getElementById('closeBuyModal');
+    const modalSummary = document.getElementById('modalListingSummary');
+    const confirmPurchaseForm = document.getElementById('confirmPurchaseForm');
+
+    function openPurchaseModal(id) {
+      pendingPurchaseListing = listings.find(l => l.id === id);
+      if (!pendingPurchaseListing) return;
+
+      if (currentUser && currentUser.role === 'buyer') {
+        document.getElementById('companyBuyerName').value = currentUser.name;
+      }
+
+      modalSummary.innerHTML = `
+        <div class="flex justify-between">
+          <span class="text-slate-500">Material Batch:</span>
+          <span class="font-semibold text-slate-800">${pendingPurchaseListing.type}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Scrapper Origin:</span>
+          <span class="font-semibold text-slate-800">${pendingPurchaseListing.scrapper} (${pendingPurchaseListing.hub || 'Nagpur'})</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">Credits to Acquire:</span>
+          <span class="font-bold text-emerald-700">${pendingPurchaseListing.credits} kg eq.</span>
+        </div>
+        <div class="flex justify-between border-t border-slate-200 pt-1.5 mt-1">
+          <span class="text-slate-700 font-bold">Total Offset Cost:</span>
+          <span class="font-bold text-blue-700">$${(pendingPurchaseListing.credits * pendingPurchaseListing.price).toLocaleString()}</span>
+        </div>
+      `;
+
+      buyModal.classList.remove('hidden');
+    }
+
+    closeBuyModal.addEventListener('click', () => {
+      buyModal.classList.add('hidden');
+      pendingPurchaseListing = null;
+    });
+
+    confirmPurchaseForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!pendingPurchaseListing) return;
+
+      const buyerName = document.getElementById('companyBuyerName').value.trim() || (currentUser ? currentUser.name : "Tata Electronics Corp");
+      const quotaType = document.getElementById('eprTargetCategory').value;
+
+      pendingPurchaseListing.status = 'purchased';
+      pendingPurchaseListing.buyer = buyerName;
+
+      const newCert = {
+        id: `EPR-2026-00${Math.floor(100 + Math.random() * 900)}`,
+        company: buyerName,
+        credits: pendingPurchaseListing.credits,
+        type: pendingPurchaseListing.type,
+        scrapper: pendingPurchaseListing.scrapper,
+        date: "2026-10-15",
+        offsetHash: "0x" + Math.random().toString(16).substr(2, 16),
+        quotaType: quotaType
+      };
+
+      certificates.unshift(newCert);
+
+      confirmPurchaseForm.reset();
+      buyModal.classList.add('hidden');
+      pendingPurchaseListing = null;
+
+      renderListings();
+      renderCertificates();
+      switchTab('certificates');
+    });
+
+    // ================= 7. SCRAPPER LISTING FORM =================
+    const creditForm = document.getElementById('creditForm');
+    const formToast = document.getElementById('formSuccessToast');
+
+    // Handle Scheduling Toggle UI
+    const modeImmediate = document.getElementById('modeImmediate');
+    const modeScheduled = document.getElementById('modeScheduled');
+    const schedulePickerContainer = document.getElementById('schedulePickerContainer');
+    const scheduleDateTimeInput = document.getElementById('scheduleDateTime');
+
+    function toggleSchedulePicker() {
+      if (modeScheduled.checked) {
+        schedulePickerContainer.classList.remove('hidden');
+        if (!scheduleDateTimeInput.value) {
+          // Default to tomorrow 10:00 AM
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          tomorrow.setHours(10, 0, 0, 0);
+          const tzOffset = tomorrow.getTimezoneOffset() * 60000;
+          scheduleDateTimeInput.value = (new Date(tomorrow - tzOffset)).toISOString().slice(0, 16);
+        }
+      } else {
+        schedulePickerContainer.classList.add('hidden');
+      }
+    }
+
+    modeImmediate.addEventListener('change', toggleSchedulePicker);
+    modeScheduled.addEventListener('change', toggleSchedulePicker);
+
+    creditForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('scrapperName').value.trim();
+      const type = document.getElementById('scrapType').value;
+      const hub = document.getElementById('hubLocation').value;
+      const credits = Number(document.getElementById('creditAmount').value);
+      const price = Number(document.getElementById('pricePerCredit').value);
+      const hasLabAssay = document.getElementById('certifiedPurity').checked;
+      const isScheduled = modeScheduled.checked;
+
+      if (!name || credits <= 0 || price <= 0) return;
+
+      let scheduledTimeVal = null;
+      let scheduledDisplayVal = null;
+
+      if (isScheduled) {
+        scheduledTimeVal = scheduleDateTimeInput.value;
+        if (!scheduledTimeVal) {
+          const defaultDt = new Date();
+          defaultDt.setHours(defaultDt.getHours() + 24);
+          scheduledTimeVal = defaultDt.toISOString();
+        }
+        const dtObj = new Date(scheduledTimeVal);
+        scheduledDisplayVal = dtObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' at ' + dtObj.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      const newListing = {
+        id: Date.now(),
+        scrapper: name,
+        type: type,
+        hub: hub,
+        credits: credits,
+        price: price,
+        status: isScheduled ? 'scheduled' : 'available',
+        scheduledTime: scheduledTimeVal,
+        scheduledDisplay: scheduledDisplayVal,
+        hasLabAssay: hasLabAssay,
+        buyer: null,
+        date: isScheduled ? 'Scheduled' : 'Just now'
+      };
+
+      listings.unshift(newListing);
+      creditForm.reset();
+
+      // Reset to immediate
+      modeImmediate.checked = true;
+      toggleSchedulePicker();
+
+      if (currentUser && currentUser.role === 'seller') {
+        document.getElementById('scrapperName').value = currentUser.name;
+        document.getElementById('hubLocation').value = currentUser.sub;
+      }
+
+      formToast.innerHTML = isScheduled 
+        ? `<span>⏰</span> Lot successfully scheduled! It will automatically go live on <strong>${scheduledDisplayVal}</strong>.`
+        : `<span>✓</span> Listing published and available for corporate buyout!`;
+      formToast.classList.remove('hidden');
+      setTimeout(() => formToast.classList.add('hidden'), 4000);
+
+      renderListings();
+    });
+
+    // ================= 8. FILTER CONTROLS =================
+    const filterAll = document.getElementById('filterAll');
+    const filterAvailable = document.getElementById('filterAvailable');
+    const filterScheduled = document.getElementById('filterScheduled');
+    const filterPurchased = document.getElementById('filterPurchased');
+
+    function setMarketFilter(f, activeBtn, inactiveBtns) {
+      currentFilter = f;
+      activeBtn.className = 'px-3 py-1 text-xs font-semibold rounded-md bg-slate-800 text-white';
+      inactiveBtns.forEach(btn => {
+        btn.className = 'px-3 py-1 text-xs font-semibold rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200';
+      });
+      renderListings();
+    }
+
+    filterAll.addEventListener('click', () => setMarketFilter('all', filterAll, [filterAvailable, filterScheduled, filterPurchased]));
+    filterAvailable.addEventListener('click', () => setMarketFilter('available', filterAvailable, [filterAll, filterScheduled, filterPurchased]));
+    filterScheduled.addEventListener('click', () => setMarketFilter('scheduled', filterScheduled, [filterAll, filterAvailable, filterPurchased]));
+    filterPurchased.addEventListener('click', () => setMarketFilter('purchased', filterPurchased, [filterAll, filterAvailable, filterScheduled]));
+
+    // Background timer to automatically transition scheduled listings to active when time arrives
+    function checkScheduledQueue() {
+      let changed = false;
+      const now = new Date();
+      listings.forEach(l => {
+        if (l.status === 'scheduled' && l.scheduledTime) {
+          if (new Date(l.scheduledTime) <= now) {
+            l.status = 'available';
+            l.date = 'Just now';
+            changed = true;
+          }
+        }
+      });
+      if (changed) {
+        renderListings();
+      }
+    }
+    setInterval(checkScheduledQueue, 5000);
+
+    // ================= 9. LOGISTICS TAB =================
+    const logisticsList = document.getElementById('logisticsList');
+    const logisticsForm = document.getElementById('logisticsForm');
+    const logisticsSuccess = document.getElementById('logisticsSuccess');
+    const dispatchCode = document.getElementById('dispatchCode');
+
+    function renderLogistics() {
+      logisticsList.innerHTML = '';
+      logistics.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-4 bg-white rounded-xl border border-slate-200 shadow-xs flex justify-between items-start";
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">${item.id}</span>
+              <span class="text-xs bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full font-medium">${item.vehicle}</span>
+            </div>
+            <p class="text-xs font-semibold text-slate-800">${item.address}</p>
+            <p class="text-[11px] text-slate-500 mt-1">Payload: <strong>${item.weight}</strong> &bull; Pickup Date: <strong>${item.date}</strong></p>
+          </div>
+          <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-md">
+            ${item.status}
+          </span>
+        `;
+        logisticsList.appendChild(div);
+      });
+    }
+
+    logisticsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const addr = document.getElementById('pickupAddress').value.trim();
+      const vehicle = document.getElementById('vehicleType').value;
+      const date = document.getElementById('pickupDate').value;
+      const weight = document.getElementById('estimatedWeight').value;
+
+      const newId = `TRK-${Math.floor(1000 + Math.random() * 9000)}`;
+      logistics.unshift({
+        id: newId,
+        address: addr,
+        vehicle: vehicle,
+        weight: `${weight} kg`,
+        date: date,
+        status: "Dispatch Confirmed"
+      });
+
+      logisticsForm.reset();
+      dispatchCode.textContent = newId;
+      logisticsSuccess.classList.remove('hidden');
+      setTimeout(() => logisticsSuccess.classList.add('hidden'), 4000);
+
+      renderLogistics();
+    });
+
+    // ================= 10. LAB AUDIT TAB =================
+    const auditList = document.getElementById('auditList');
+    const auditForm = document.getElementById('auditForm');
+    const auditSuccess = document.getElementById('auditSuccess');
+    const assayToken = document.getElementById('assayToken');
+
+    function renderAudits() {
+      auditList.innerHTML = '';
+      assays.forEach(item => {
+        const div = document.createElement('div');
+        div.className = "p-4 bg-white rounded-xl border border-purple-100 shadow-xs flex justify-between items-start";
+        div.innerHTML = `
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="font-mono text-xs font-bold text-purple-800 bg-purple-50 px-2 py-0.5 rounded border border-purple-200">${item.token}</span>
+              <span class="text-xs font-semibold text-slate-700">Lot: ${item.batchId}</span>
+            </div>
+            <p class="text-xs font-bold text-slate-800">${item.type}</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Assay Lab: ${item.lab}</p>
+            <p class="text-xs text-purple-700 font-semibold mt-1">Result: ${item.score}</p>
+          </div>
+          <span class="text-xs font-semibold text-purple-700 bg-purple-50 border border-purple-200 px-2 py-1 rounded-md">
+            ✓ ${item.status}
+          </span>
+        `;
+        auditList.appendChild(div);
+      });
+    }
+
+    auditForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const batchId = document.getElementById('auditBatchId').value.trim();
+      const assayType = document.getElementById('assayType').value;
+      const lab = document.getElementById('labFacility').value;
+
+      const newToken = `ASM-${Math.floor(1000 + Math.random() * 9000)}`;
+      assays.unshift({
+        token: newToken,
+        batchId: batchId,
+        type: assayType,
+        lab: lab,
+        score: "Inspection In-Progress (Pending Assay)",
+        status: "Sampling Scheduled"
+      });
+
+      auditForm.reset();
+      assayToken.textContent = newToken;
+      auditSuccess.classList.remove('hidden');
+      setTimeout(() => auditSuccess.classList.add('hidden'), 4000);
+
+      renderAudits();
+    });
+
+    // ================= 11. EPR CERTIFICATES / SALES RECORDS =================
+    const certificatesContainer = document.getElementById('certificatesContainer');
+    const noCertificates = document.getElementById('noCertificates');
+
+    function renderCertificates() {
+      certificatesContainer.innerHTML = '';
+      if (certificates.length === 0) {
+        noCertificates.classList.remove('hidden');
+      } else {
+        noCertificates.classList.add('hidden');
+        certificates.forEach(cert => {
+          const card = document.createElement('div');
+          card.className = "bg-gradient-to-br from-white to-slate-50 border-2 border-emerald-600/30 rounded-xl p-5 shadow-sm relative overflow-hidden";
+          card.innerHTML = `
+            <div class="absolute -right-6 -bottom-6 text-emerald-100 text-8xl font-black pointer-events-none select-none">
+              EPR
+            </div>
+            <div class="flex justify-between items-start border-b border-slate-100 pb-3 mb-3">
+              <div>
+                <span class="text-[10px] uppercase font-bold tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Official Environmental Proof</span>
+                <h4 class="text-sm font-bold text-slate-800 mt-1">${cert.id}</h4>
+              </div>
+              <span class="text-xs font-mono text-slate-400">${cert.date}</span>
+            </div>
+
+            <div class="space-y-1.5 text-xs">
+              <p><span class="text-slate-500">Issued To:</span> <strong class="text-slate-800">${cert.company}</strong></p>
+              <p><span class="text-slate-500">Material Category:</span> <strong class="text-slate-800">${cert.type}</strong></p>
+              <p><span class="text-slate-500">Offset Volume:</span> <strong class="text-emerald-700">${cert.credits} kg Equivalent</strong></p>
+              <p><span class="text-slate-500">Source Collector:</span> <span class="text-slate-700">${cert.scrapper}</span></p>
+              <p><span class="text-slate-500">Regulatory Quota:</span> <span class="text-slate-700">${cert.quotaType}</span></p>
+            </div>
+
+            <div class="mt-4 pt-3 border-t border-slate-200/80 flex justify-between items-center text-[11px]">
+              <span class="font-mono text-slate-400 truncate max-w-[170px]" title="${cert.offsetHash}">Hash: ${cert.offsetHash}</span>
+              <span class="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded flex items-center gap-1">
+                <span>🛡️</span> Verified Valid
+              </span>
+            </div>
+          `;
+          certificatesContainer.appendChild(card);
+        });
+      }
+    }
+
+    // ================= 12. ADVANCED AI ASSISTANT CHAT ENGINE =================
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInputForm = document.getElementById('chatInputForm');
+    const chatUserInput = document.getElementById('chatUserInput');
+
+    // Context-sensitive knowledge base for instant smart responses
+    function getAiResponse(userText) {
+      const lower = userText.toLowerCase();
+      const isSeller = currentUser && currentUser.role === 'seller';
+      const entity = currentUser ? currentUser.name : "Member";
+
+      if (lower.includes('price') || lower.includes('rate') || lower.includes('cost') || lower.includes('worth')) {
+        if (isSeller) {
+          return `Currently on the exchange, <strong>Circuit Board E-Waste</strong> trades at approximately <strong>$15–$18/kg</strong>. <strong>EV Lithium Batteries</strong> average <strong>$22–$26/kg</strong> due to high cobalt/nickel recovery demand. Attaching an accredited lab purity assay allows you to command the upper price range.`;
+        } else {
+          return `Corporate purchase prices currently range from <strong>$8/kg</strong> for recycled plastics to <strong>$24/kg</strong> for certified lithium-ion cells. All listed prices include verified chain-of-custody documentation for CPCB EPR offset filing.`;
+        }
+      }
+
+      if (lower.includes('lithium') || lower.includes('battery') || lower.includes('package') || lower.includes('hazard')) {
+        return `<strong>Battery Safety Protocol:</strong> Lithium-Ion EV battery cells must be discharged to <30% State of Charge (SoC), terminals insulated with non-conductive dielectric tape, and transported in Class 9 certified fire-retardant drum containers. You can book an ADR-compliant hauler directly in the <em>Scrap Pickup Logistics</em> tab.`;
+      }
+
+      if (lower.includes('hash') || lower.includes('verify') || lower.includes('authenticity') || lower.includes('fake')) {
+        return `Every EPR Certificate generates a SHA-256 cryptographic offset hash (e.g. <code>0x89f4b1e7...</code>). This hash anchors the lot batch weight, collector facility license, and buyer CIN to an immutable digital ledger, preventing double-counting or regulatory fraud.`;
+      }
+
+      if (lower.includes('pickup') || lower.includes('logistics') || lower.includes('truck') || lower.includes('transport')) {
+        return `You can schedule transport vehicles ranging from <strong>500 kg Mini Vans</strong> up to <strong>10-Ton Heavy Multi-Axle Trucks</strong> under the <em>Scrap Pickup Logistics</em> tab. Pickups scheduled before 2:00 PM are dispatched on the next business day across all regional hubs.`;
+      }
+
+      if (lower.includes('cpcb') || lower.includes('rule') || lower.includes('quota') || lower.includes('law')) {
+        return `Under the Extended Producer Responsibility (EPR) Amendment Rules, producers, importers, and brand owners (PIBOs) must offset 100% of generated e-waste and packaging. Credits purchased through EcoCredit Exchange comply with Schedule III CPCB electronic portal filing requirements.`;
+      }
+
+      if (lower.includes('calculate') || lower.includes('estimate') || lower.includes('formula')) {
+        return `<strong>Credit Formula:</strong> 1 EcoCredit = 1 kg certified recycled raw equivalent. For example, 500 kg of E-Waste at $16.50/credit yields <strong>$8,250</strong> in seller payout and offsets <strong>0.5 metric tons</strong> of corporate carbon & landfill liability.`;
+      }
+
+      // Default smart fallback
+      return `Thank you for asking, ${entity}! Based on your current <strong>${isSeller ? 'Seller / Collector' : 'Corporate Buyer'}</strong> profile, I can help you with credit valuations, CPCB regulatory quotas, dispatch logistics, or lab purity testing. Feel free to ask a specific question!`;
+    }
+
+    function appendChatMessage(sender, htmlText) {
+      const bubble = document.createElement('div');
+      bubble.className = sender === 'user' 
+        ? 'chat-bubble-user p-3 max-w-[85%] ml-auto text-xs shadow-xs leading-relaxed' 
+        : 'chat-bubble-ai p-3 max-w-[85%] text-xs shadow-xs leading-relaxed';
+      bubble.innerHTML = htmlText;
+      chatMessages.appendChild(bubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function sendAiChatMessage(text) {
+      appendChatMessage('user', text);
+      // Simulate rapid AI response
+      setTimeout(() => {
+        const reply = getAiResponse(text);
+        appendChatMessage('ai', reply);
+      }, 400);
+    }
+
+    chatInputForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const message = chatUserInput.value.trim();
+      if (!message) return;
+      chatUserInput.value = '';
+      sendAiChatMessage(message);
+    });
+
+    // ================= 13. SUPPORT TICKETS FORM =================
+    const helpTicketForm = document.getElementById('helpTicketForm');
+    const ticketSuccessToast = document.getElementById('ticketSuccessToast');
+    const ticketCaseRef = document.getElementById('ticketCaseRef');
+
+    helpTicketForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newCase = `TCK-2026-${Math.floor(100 + Math.random() * 900)}`;
+      ticketCaseRef.textContent = newCase;
+      ticketSuccessToast.classList.remove('hidden');
+      helpTicketForm.reset();
+      if (currentUser) {
+        ticketContactName.value = currentUser.name;
+      }
+      setTimeout(() => ticketSuccessToast.classList.add('hidden'), 5000);
+    });
+
+    // Set default date picker
+    document.getElementById('pickupDate').valueAsDate = new Date();
+
+    // Check stored user or show role selection
+    try {
+      const stored = localStorage.getItem('ecocredit_user');
+      if (stored) {
+        currentUser = JSON.parse(stored);
+      }
+    } catch (e) {}
+
+    if (currentUser) {
+      authScreen.classList.add('hidden');
+      appContainer.classList.remove('hidden');
+      applyRoleAdaptations();
+    } else {
+      appContainer.classList.add('hidden');
+      authScreen.classList.remove('hidden');
+      showRoleChooser();
+    }
+
+    renderListings();
+    renderLogistics();
+    renderAudits();
+    renderCertificates();
+  </script>
+</body>
+</html>
